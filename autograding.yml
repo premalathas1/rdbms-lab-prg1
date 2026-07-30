@@ -1,0 +1,10 @@
+- name: Show Current Folder
+  run: pwd
+
+- name: List Files
+  run: ls -la
+
+- name: Show student_solution.sql
+  run: |
+    echo "===== student_solution.sql ====="
+    cat student_solution.sql
