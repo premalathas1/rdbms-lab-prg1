@@ -1,123 +1,121 @@
 #!/bin/bash
 
+set -e
+
+MYSQL="mysql -h127.0.0.1 -P3306 -uroot -proot"
+
 echo "====================================="
 echo " SQL Assignment Test"
 echo "====================================="
 
-# Execute student's SQL file
-
-mysql -h127.0.0.1 -uroot -proot < student_solution.sql
-
-if [ $? -ne 0 ]; then
-    echo "Student SQL contains syntax errors."
+# Check that the student's file exists
+if [ ! -f student_solution.sql ]; then
+    echo "ERROR: student_solution.sql not found."
     exit 1
 fi
 
+echo "Executing student_solution.sql..."
+
+# Execute the student's SQL
+$MYSQL --force < student_solution.sql
+
+echo ""
+
 marks=0
 
-#################################################
-echo ""
-echo "Test Case 1 : Database"
+########################################
+# Test Case 1 - Database
+########################################
 
-db=$(mysql -N -h127.0.0.1 -uroot -proot -e "
-SELECT SCHEMA_NAME
-FROM INFORMATION_SCHEMA.SCHEMATA
-WHERE SCHEMA_NAME='CollegeDB';")
+DB=$($MYSQL -Nse "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME='CollegeDB';")
 
-if [ "$db" = "CollegeDB" ]; then
-    echo "PASS"
+if [ "$DB" = "CollegeDB" ]; then
+    echo "✓ Database created"
     marks=$((marks+2))
 else
-    echo "FAIL"
+    echo "✗ Database CollegeDB not found"
+    echo "Marks : $marks /10"
+    exit 1
 fi
 
-#################################################
-echo ""
-echo "Test Case 2 : Department Table"
+########################################
+# Test Case 2 - Table
+########################################
 
-table=$(mysql -N -h127.0.0.1 -uroot -proot CollegeDB -e "
-SHOW TABLES LIKE 'Department';")
+TABLE=$($MYSQL -D CollegeDB -Nse "SHOW TABLES LIKE 'Department';")
 
-if [ "$table" = "Department" ]; then
-    echo "PASS"
+if [ "$TABLE" = "Department" ]; then
+    echo "✓ Department table created"
     marks=$((marks+2))
 else
-    echo "FAIL"
+    echo "✗ Department table missing"
+    echo "Marks : $marks /10"
+    exit 1
 fi
 
-#################################################
-echo ""
-echo "Test Case 3 : DepartmentID"
+########################################
+# Test Case 3 - DepartmentID
+########################################
 
-column=$(mysql -N -h127.0.0.1 -uroot -proot CollegeDB -e "
+COL=$($MYSQL -Nse "
 SELECT COLUMN_NAME
 FROM INFORMATION_SCHEMA.COLUMNS
 WHERE TABLE_SCHEMA='CollegeDB'
 AND TABLE_NAME='Department'
 AND COLUMN_NAME='DepartmentID';")
 
-if [ "$column" = "DepartmentID" ]; then
-    echo "PASS"
+if [ "$COL" = "DepartmentID" ]; then
+    echo "✓ DepartmentID exists"
     marks=$((marks+2))
-else
-    echo "FAIL"
 fi
 
-#################################################
-echo ""
-echo "Test Case 4 : DepartmentName"
+########################################
+# Test Case 4 - DepartmentName
+########################################
 
-column=$(mysql -N -h127.0.0.1 -uroot -proot CollegeDB -e "
+COL=$($MYSQL -Nse "
 SELECT COLUMN_NAME
 FROM INFORMATION_SCHEMA.COLUMNS
 WHERE TABLE_SCHEMA='CollegeDB'
 AND TABLE_NAME='Department'
 AND COLUMN_NAME='DepartmentName';")
 
-if [ "$column" = "DepartmentName" ]; then
-    echo "PASS"
+if [ "$COL" = "DepartmentName" ]; then
+    echo "✓ DepartmentName exists"
     marks=$((marks+2))
-else
-    echo "FAIL"
 fi
 
-#################################################
-echo ""
-echo "Test Case 5 : HOD"
+########################################
+# Test Case 5 - HOD
+########################################
 
-column=$(mysql -N -h127.0.0.1 -uroot -proot CollegeDB -e "
+COL=$($MYSQL -Nse "
 SELECT COLUMN_NAME
 FROM INFORMATION_SCHEMA.COLUMNS
 WHERE TABLE_SCHEMA='CollegeDB'
 AND TABLE_NAME='Department'
 AND COLUMN_NAME='HOD';")
 
-if [ "$column" = "HOD" ]; then
-    echo "PASS"
+if [ "$COL" = "HOD" ]; then
+    echo "✓ HOD exists"
     marks=$((marks+1))
-else
-    echo "FAIL"
 fi
 
-#################################################
-echo ""
-echo "Test Case 6 : Primary Key"
+########################################
+# Test Case 6 - Primary Key
+########################################
 
-pk=$(mysql -N -h127.0.0.1 -uroot -proot CollegeDB -e "
+PK=$($MYSQL -Nse "
 SELECT COLUMN_NAME
 FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
 WHERE TABLE_SCHEMA='CollegeDB'
 AND TABLE_NAME='Department'
 AND CONSTRAINT_NAME='PRIMARY';")
 
-if [ "$pk" = "DepartmentID" ]; then
-    echo "PASS"
+if [ "$PK" = "DepartmentID" ]; then
+    echo "✓ Primary Key correct"
     marks=$((marks+1))
-else
-    echo "FAIL"
 fi
-
-#################################################
 
 echo ""
 echo "====================================="
