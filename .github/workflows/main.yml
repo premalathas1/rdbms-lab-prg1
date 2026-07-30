@@ -5,33 +5,30 @@ on:
   workflow_dispatch:
 
 jobs:
-
-  autograding:
+  grade:
 
     runs-on: ubuntu-latest
 
     services:
-
       mysql:
-
         image: mysql:8.0
 
         env:
           MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: mysql
 
         ports:
           - 3306:3306
 
         options: >-
-          --health-cmd="mysqladmin ping -h127.0.0.1 -proot"
+          --health-cmd="mysqladmin ping -uroot -proot"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=10
+          --health-retries=20
 
     steps:
 
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Install MySQL Client
         run: |
@@ -42,11 +39,17 @@ jobs:
         run: |
           until mysqladmin ping -h127.0.0.1 -uroot -proot --silent
           do
-            sleep 2
+            sleep 3
           done
+
+      - name: Show Repository Files
+        run: ls -l
+
+      - name: Show Student SQL
+        run: cat student_solution.sql
 
       - name: Make test executable
         run: chmod +x test.sh
 
-      - name: Run Test Cases
+      - name: Run Tests
         run: ./test.sh
